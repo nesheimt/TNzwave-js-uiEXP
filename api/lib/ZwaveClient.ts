@@ -7547,6 +7547,12 @@ class ZwaveClient extends TypedEventEmitter<ZwaveClientEventCallbacks> {
 			valueId.value = new Duration(undefined, 'seconds')
 		}
 
+		// ensure value is never undefined; -1 is used as a sentinel value to
+		// indicate that no valid value has been reported yet by the device
+		if (valueId.value === undefined) {
+			valueId.value = -1
+		}
+
 		if (this._isCurrentValue(valueId)) {
 			valueId.isCurrentValue = true
 			const targetValue = this._findTargetValue(
@@ -7637,6 +7643,12 @@ class ZwaveClient extends TypedEventEmitter<ZwaveClientEventCallbacks> {
 				valueId.value = new Duration(undefined, 'seconds')
 			}
 
+			// ensure value is never undefined; -1 is used as a sentinel value to
+			// indicate that no valid value has been reported yet by the device
+			if (valueId.value === undefined) {
+				valueId.value = -1
+			}
+
 			if (!skipUpdate) {
 				this.emitValueChanged(valueId, node, prevValue !== newValue)
 			}
@@ -7648,7 +7660,8 @@ class ZwaveClient extends TypedEventEmitter<ZwaveClientEventCallbacks> {
 				}
 
 				this.statelessTimeouts[valueId.id] = setTimeout(() => {
-					valueId.value = undefined
+					// reset stateless value to -1 (sentinel for no valid value) instead of undefined
+					valueId.value = -1
 					this.emitValueChanged(valueId, node, false)
 				}, 1000)
 			}
