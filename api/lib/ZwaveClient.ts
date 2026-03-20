@@ -155,6 +155,8 @@ const logger = LogManager.module('Z-Wave')
 
 const NEIGHBORS_LOCK_REFRESH = 60 * 1000
 
+const STATELESS_RESET_VALUE = 99
+
 function validateMethods<T extends readonly (keyof ZwaveClient)[]>(
 	methods: T,
 ): T {
@@ -7648,8 +7650,30 @@ class ZwaveClient extends TypedEventEmitter<ZwaveClientEventCallbacks> {
 				}
 
 				this.statelessTimeouts[valueId.id] = setTimeout(() => {
-					valueId.value = undefined
+					valueId.value = STATELESS_RESET_VALUE
+
+					const resetArgs = {
+						commandClass: valueId.commandClass,
+						commandClassName: valueId.commandClassName,
+						property: valueId.property,
+						propertyName: valueId.propertyName,
+						propertyKey: valueId.propertyKey,
+						propertyKeyName: valueId.propertyKeyName,
+						endpoint: valueId.endpoint,
+						newValue: STATELESS_RESET_VALUE,
+						prevValue: undefined,
+						stateless: true,
+					}
+
 					this.emitValueChanged(valueId, node, false)
+
+					this.emit(
+						'event',
+						EventSource.NODE,
+						'node value updated',
+						this.zwaveNodeToJSON(zwaveNode),
+						resetArgs,
+					)
 				}, 1000)
 			}
 		}
