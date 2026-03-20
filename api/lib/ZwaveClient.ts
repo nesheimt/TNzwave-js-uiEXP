@@ -7662,7 +7662,29 @@ class ZwaveClient extends TypedEventEmitter<ZwaveClientEventCallbacks> {
 				this.statelessTimeouts[valueId.id] = setTimeout(() => {
 					// reset stateless value to -1 (sentinel for no valid value) instead of undefined
 					valueId.value = -1
+
+					const resetArgs = {
+						commandClass: valueId.commandClass,
+						commandClassName: valueId.commandClassName,
+						property: valueId.property,
+						propertyName: valueId.propertyName,
+						propertyKey: valueId.propertyKey,
+						propertyKeyName: valueId.propertyKeyName,
+						endpoint: valueId.endpoint,
+						newValue: -1,
+						prevValue: undefined,
+						stateless: true,
+					}
+
 					this.emitValueChanged(valueId, node, false)
+
+					this.emit(
+						'event',
+						EventSource.NODE,
+						'node value updated',
+						this.zwaveNodeToJSON(zwaveNode),
+						resetArgs,
+					)
 				}, 1000)
 			}
 		}
